@@ -1,11 +1,22 @@
-const http = require('http');
-const app = require('./app');
-require('dotenv').config(); // Load environment variables from .env file
+// server.js
+const express = require('express');
+const bodyParser = require('body-parser');
+const cors = require('cors');
 
-const port = process.env.PORT || 3000; // Use the specified port or default to 3000
+const authRoutes = require('./routes/auth');
+const userRoutes = require('./routes/user'); // add this line
+const imageRoutes = require('./routes/image'); // add this line
 
-const server = http.createServer(app);
+const app = express();
+const port = process.env.PORT || 3000;
 
-server.listen(port, () => {
+app.use(cors());
+app.use(bodyParser.json());
+
+app.use('/api', authRoutes);
+app.use('/api/user', userRoutes); // add this line
+app.use('/api/image', imageRoutes); // add this line
+
+app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });

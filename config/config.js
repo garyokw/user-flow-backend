@@ -1,19 +1,10 @@
-require('dotenv').config(); 
+const dotenv = require('dotenv');
 
-module.exports = {
-  development: {
-    // Database connection settings
-    database: {
-      host: process.env.MYSQL_HOST ,
-      port: process.env.MYSQL_PORT ,
-      user: process.env.MYSQL_USER ,
-      password: process.env.MYSQL_PASSWORD ,
-      database: process.env.MYSQL_DATABASE ,
-    },
-    //JWT Key
-    secretKey: process.env.SECRET_KEY ,
-  },
+dotenv.config();
+
+const config = {
+  JWT_SECRET: process.env.JWT_SECRET,
 };
 
-// Compose the MySQL connection string
-module.exports.development.database.connectionString = `mysql://${process.env.MYSQL_USER}:${process.env.MYSQL_PASSWORD}@${process.env.MYSQL_HOST}:${process.env.MYSQL_PORT}/${process.env.MYSQL_DATABASE}`;
+module.exports = config;
+

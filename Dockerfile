@@ -8,13 +8,10 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install application dependencies
-RUN npm install mysql2 jsonwebtoken dotenv argon2 cors
+RUN npm install express mongoose jsonwebtoken dotenv argon2 cors
 
 # Copy the rest of the application source code to the container
 COPY . .
-
-# Copy the SQL initialization script to the container
-COPY db_init.sql /docker-entrypoint-initdb.d/
 
 # Build image (if needed)
 # RUN npm run build -t user-flow-backend:v0.1 .

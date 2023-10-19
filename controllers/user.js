@@ -1,68 +1,37 @@
-const express = require('express');
-const router = express.Router();
-const { verifyToken } = require('./auth');
-const { getUserById, updateUser, deleteUser } = require('../models/user');
+// controllers/user.js
+const jwt = require('jsonwebtoken');
+const secretKey = process.env.JWT_SECRET || 'YourSecretKey';
 
-// Middleware to protect routes with JWT token verification
-router.use(verifyToken);
+let users = [];
 
-// Endpoint to get user information by ID
-router.get('/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const user = await getUserById(id);
-
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-
-    // Remove sensitive data like password before sending the response
-    const { password, ...userData } = user;
-
-    res.status(200).json(userData);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Internal server error' });
+function registerUser(username, password) {
+  // Check if the username already exists
+  const existingUser = users.find(user => user.username === username);
+  if (existingUser) {
+    throw new Error('Username already exists');
   }
-});
 
-// Endpoint to update user information
-router.put('/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const updatedData = req.body;
+  // Add user to the list
+  const user = { id: users.length + 1, username, password };
+  users.push(user);
 
-    // Update user data in the database
-    const updatedUser = await updateUser(id, updatedData);
+  // Create a token for the user
+  const token = jwt.sign({ id: user.id, username: user.username }, secretKey, { expiresIn: '30m' });
 
-    if (!updatedUser) {
-      return res.status(404).json({ message: 'User not found' });
-    }
+  return token;
+}
 
-    res.status(200).json({ message: 'User updated successfully' });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Internal server error' });
+function loginUser(username, password) {
+  // Find the user
+  const user = users.find(user => user.username === username && user.password === password);
+  if (!user) {
+    throw new Error('Invalid username or password');
   }
-});
 
-// Endpoint to delete a user
-router.delete('/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
+  // Create a token for the user
+  const token = jwt.sign({ id: user.id, username: user.username }, secretKey, { expiresIn: '30m' });
 
-    // Delete user from the database
-    const deletedUser = await deleteUser(id);
+  return token;
+}
 
-    if (!deletedUser) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-
-    res.status(200).json({ message: 'User deleted successfully' });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
-});
-
-module.exports = router;
+module.exports = { registerUser, loginUser };

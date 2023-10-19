@@ -1,52 +1,30 @@
 const express = require('express');
-const { createUser, getUserByUsername } = require('../models/user');
-const { hashPassword, verifyPassword } = require('../utils/password'); // Implement hashPassword and verifyPassword functions
-const { createToken, verifyToken } = require('../controllers/auth');
 const router = express.Router();
+const dataStore = require('../dataStore'); // Import the in-memory data store
 
-// User Registration Endpoint
-router.post('/register', async (req, res) => {
+// Create a new user
+router.post('/api/register', (req, res) => {
   const { username, password } = req.body;
 
-  if (!username || !password) {
-    return res.status(400).json({ message: 'Username and password are required.' });
-  }
+  // Add user data to the data store
+  dataStore.push({ username, password });
 
-  const existingUser = await getUserByUsername(username);
-  if (existingUser) {
-    return res.status(409).json({ message: 'Username already exists.' });
-  }
-
-  const passwordHash = await hashPassword(password);
-  const success = await createUser(username, passwordHash);
-
-  if (success) {
-    res.status(201).json({ message: 'User registered successfully.' });
-  } else {
-    res.status(500).json({ message: 'User registration failed.' });
-  }
+  res.status(200).json({ message: 'User registered successfully' });
 });
 
-// User Login Endpoint
-router.post('/login', async (req, res) => {
+// User login
+router.post('/api/login', (req, res) => {
   const { username, password } = req.body;
 
-  if (!username || !password) {
-    return res.status(400).json({ message: 'Username and password are required.' });
+  // Find the user in the data store
+  const user = dataStore.find(u => u.username === username);
+
+  if (!user || user.password !== password) {
+    return res.status(401).json({ message: 'Unauthorized' });
   }
 
-  const user = await getUserByUsername(username);
-  if (!user) {
-    return res.status(401).json({ message: 'Invalid username or password.' });
-  }
-
-  const passwordMatch = await verifyPassword(password, user.password);
-  if (!passwordMatch) {
-    return res.status(401).json({ message: 'Invalid username or password.' });
-  }
-
-  const token = createToken(user);
-  res.json({ token });
+  // In this example, you can generate and return a simple success message
+  res.status(200).json({ message: 'Login successful' });
 });
 
 module.exports = router;
