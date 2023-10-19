@@ -130,3 +130,7 @@ dist
 .pnp.*
 
 .env
+
+# Jest
+coverage/
+node_modules/
